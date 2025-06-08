@@ -1,0 +1,18 @@
+# alertmanager/am-1.yml (and am-2.yml)
+global:
+  smtp_smarthost: 'mailhog:1025'
+  smtp_from:     'alertmanager@example.com'
+  smtp_require_tls: false
+
+route:
+  receiver:       'email'
+  group_by:       ['alertname','instance']
+  group_wait:     30s
+  group_interval: 5m
+  repeat_interval: 12h
+
+receivers:
+- name: 'email'
+  email_configs:
+  - to: 'team@example.com'
+

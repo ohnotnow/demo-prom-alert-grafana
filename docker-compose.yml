@@ -1,0 +1,117 @@
+version: '3.8'
+services:
+  # ── Prometheus servers ─────────────────────────────────────────────────────
+  prometheus1:
+    image: prom/prometheus:latest
+    container_name: prometheus1
+    volumes:
+      - ./prometheus/prometheus-1.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.rules.yml:/etc/prometheus/alerts.rules.yml:ro
+    ports:
+      - '9090:9090'
+    depends_on:
+      - node-exporter1
+      - node-exporter2
+    networks:
+      - monitoring
+
+  prometheus2:
+    image: prom/prometheus:latest
+    container_name: prometheus2
+    volumes:
+      - ./prometheus/prometheus-2.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.rules.yml:/etc/prometheus/alerts.rules.yml:ro
+    ports:
+      - '9091:9090'
+    depends_on:
+      - node-exporter1
+      - node-exporter2
+    networks:
+      - monitoring
+
+  # ── Alertmanager cluster ──────────────────────────────────────────────────
+  alertmanager1:
+    image: prom/alertmanager:latest
+    container_name: alertmanager1
+    volumes:
+      - ./alertmanager/am-1.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--cluster.listen-address=0.0.0.0:9094'
+      - '--cluster.peer=alertmanager2:9094'
+    ports:
+      - '9093:9093'  # HTTP/API
+      - '9094:9094'  # clustering gossip
+    depends_on:
+      - mailhog
+    networks:
+      - monitoring
+
+  alertmanager2:
+    image: prom/alertmanager:latest
+    container_name: alertmanager2
+    volumes:
+      - ./alertmanager/am-2.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--cluster.listen-address=0.0.0.0:9094'
+      - '--cluster.peer=alertmanager1:9094'
+    ports:
+      - '9095:9093'
+      - '9096:9094'
+    depends_on:
+      - mailhog
+    networks:
+      - monitoring
+
+  # ── Node exporters (simulate two servers) ─────────────────────────────────
+  node-exporter1:
+    image: prom/node-exporter:latest
+    container_name: node-exporter1
+    ports:
+      - '9100:9100'
+    networks:
+      - monitoring
+
+  node-exporter2:
+    image: prom/node-exporter:latest
+    container_name: node-exporter2
+    ports:
+      - '9101:9100'
+    networks:
+      - monitoring
+
+  # ── MailHog for catching emails ────────────────────────────────────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - '8026:8025'  # web UI
+      - '1026:1025'  # SMTP
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus1
+    ports:
+      - '3000:3000'
+    environment:
+      # set a known admin password (change as you like)
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # disable signups
+      - GF_USERS_ALLOW_SIGN_UP=false
+      # automatically provision datasources & dashboards
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring
+
+
+networks:
+  monitoring:
+    driver: bridge
+
