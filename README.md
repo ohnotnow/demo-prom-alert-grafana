@@ -85,6 +85,23 @@ All configuration files live under the project:
 
 Adjust these files as needed before starting the stack.
 
+## Additions for real-world implementations
+You might want at least basic-auth in front of your node-exporters and/or prometheus instances.
+
+Node exporter and prometheus both (somewhat experimentally) support an extra flag of `--web.config.file` which is a yaml config.  For example :
+
+```yaml
+# Usernames and passwords required to connect.
+# Passwords are hashed with bcrypt: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md#about-bcrypt.
+basic_auth_users:
+  alice: $2y$10$mDwo.lAisC94iLAyP81MCesa29IzH37oigHC/42V2pdJlUprsJPze
+  bob: $2y$10$hLqFl9jSjoAAy95Z/zw8Ye8wkdMBM8c5Bn1ptYqP/AXyV0.oy0S8m
+```
+
+To make the alerts more reliable - you could set up an instance of an smtp-relay (eg, postfix) which has a main smtp relay and a fallback.  Then your alertmanager sends emails to the local postfix and lets it deal with fall-over smtp if your smtp server itself is offline.
+
+There is a very basic example in `postfix/main.cf`.
+
 ## Contributing
 
 1. Fork the repository  

@@ -1,0 +1,21 @@
+# Basic identity & networks
+myhostname = smtp-relay
+myorigin    = /etc/mailname
+relay_domains = *
+
+# Primary relay host
+relayhost = [mailhog]:1025
+
+# Fallback if primary is unreachable
+# Postfix will try each in order on non-permanent failures :contentReference[oaicite:1]{index=1}
+smtp_fallback_relay = [smtp-backup.example.com]:587
+
+# TLS is optional here; adjust as needed
+#smtp_tls_security_level = may
+#smtp_use_tls = yes
+
+# Authentication (if required)
+#smtp_sasl_auth_enable = yes
+#smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+#smtp_sasl_security_options = noanonymous
+
