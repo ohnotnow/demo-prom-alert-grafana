@@ -1,6 +1,6 @@
 # demo-prom-alert-grafana
 
-A self-contained demonstration of a Prometheus monitoring and alerting stack with Grafana dashboards.  
+A self-contained demonstration of an HA Prometheus monitoring and alerting stack with Grafana dashboards.  
 It includes:
 - Two Prometheus servers with shared alerting rules  
 - A two-node Alertmanager cluster with email alert simulation via MailHog  
@@ -36,14 +36,14 @@ cd demo-prom-alert-grafana
 
 ### (Optional) Pull images in advance
 ```sh
-docker-compose pull
+docker compose pull
 ```
 
 ## Running the Stack
 
 ### macOS & Ubuntu
 ```sh
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Windows (PowerShell or CMD)
@@ -54,8 +54,14 @@ docker-compose up -d
 
 To stop and remove containers, networks and volumes:
 ```sh
-docker-compose down
+docker compose down
 ```
+
+After the images have pulled and started (might take a few minutes) you can run :
+```
+docker stop node-exporter1
+```
+After a minute or so you should get a single (de-duplicated) alert in Mailhog.
 
 ## Accessing Services
 
